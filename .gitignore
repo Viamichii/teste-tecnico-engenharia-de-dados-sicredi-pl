@@ -1,0 +1,22 @@
+# Ambiente virtual
+venv/
+.env
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Dados gerados pela pipeline (não versionar)
+data/bronze/
+data/silver/
+
+# Checkpoints do Jupyter
+.ipynb_checkpoints/
+
+# Spark / Hive locais
+spark-warehouse/
+derby.log/
+
+# Cache Python
+__pycache__/
+*.pyc
