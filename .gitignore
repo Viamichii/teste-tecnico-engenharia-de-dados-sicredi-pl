@@ -20,3 +20,6 @@ derby.log/
 # Cache Python
 __pycache__/
 *.pyc
+
+# Arquivo de teste
+teste.py
