@@ -12,7 +12,7 @@ def main():
     conn = pyodbc.connect(conn_str)
     cur = conn.cursor()
 
-    N = 100  # número de associados
+    N = 100  # número de associados que queremos tentar gerar
 
     for _ in range(N):
         # ASSOCIADO
