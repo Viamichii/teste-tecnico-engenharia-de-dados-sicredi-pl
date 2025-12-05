@@ -129,7 +129,7 @@ Geração de CSV único: `data/silver/sicredi_movimentos.csv`
 
 ### Opção 1: Localmente com Python venv (Recomendado)
 
-> **💡 Nota:** O projeto foi iniciado com desenvolvido utilizando venv, portanto essa é a forma mais testada e estável de execução.
+> **💡 Nota:** O projeto foi iniciado utilizando venv, portanto essa é a forma mais testada e estável de execução.
 
 #### 1. Criar e ativar o ambiente virtual:
 
