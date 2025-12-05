@@ -101,7 +101,7 @@ O arquivo `schema.sql` cria as tabelas:
   - Cria conta
   - Cria cartão
   - Gera 3–8 movimentos
-- Usa Faker + pyodbc
+- Usa Faker + pymssql
 - Apenas insere dados válidos (PK autoincremento garante não duplicação)
 
 Esse script simula um ambiente produtivo recebendo dados transacionais.
@@ -263,8 +263,8 @@ docker compose run --rm etl python etl/etl_sicooperative.py
 - **Docker:** Aguarde alguns segundos para o SQL Server inicializar (verifique com `docker compose logs sqlserver`)
 - Confirme credenciais em `configs.py` ou variáveis de ambiente
 
-### Erro ODBC / pyodbc
-- erro entre conexao do sqlserver e ubunto no docker, erro se refere ao conector e driver que o ubunto nao tem.
+### Nota sobre pymssql
+- Substituímos `pyodbc` por `pymssql` para melhor compatibilidade com Docker/Linux, eliminando a necessidade de instalar drivers ODBC no container.
 
 ## 📌 Observações Importantes
 
