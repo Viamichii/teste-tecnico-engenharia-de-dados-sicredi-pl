@@ -298,8 +298,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ### ⚠️ Tempo de Build do Docker
 
-![PySpark Download](![aed64771-d31d-4741-9e98-66140dad58a3](https://github.com/user-attachments/assets/30a66d83-84c3-46f2-8846-043bbe0066f2)
-)
+![aed64771-d31d-4741-9e98-66140dad58a3](https://github.com/user-attachments/assets/558df58c-e485-4e66-ba17-4ac4a541e916)
+
 
 > **Nota:** Sempre que repetia o build no Docker, o processo demorava muito a ponto de parecer que estava travado. Ao rodar localmente novamente depois de clonar o projeto, notei que o Spark demorava bastante para baixar e configurar. Esse é provavelmente o motivo da demora no build do Docker. Tenha paciência durante o primeiro build - pode levar vários minutos.
 
