@@ -127,7 +127,9 @@ Geração de CSV único: `data/silver/sicredi_movimentos.csv`
 
 ## 🚀 Como Executar
 
-### Opção 1: Localmente com Python venv
+### Opção 1: Localmente com Python venv (Recomendado)
+
+> **💡 Nota:** O projeto foi desenvolvido utilizando venv, portanto essa é a forma mais testada e estável de execução.
 
 #### 1. Criar e ativar o ambiente virtual:
 
@@ -264,7 +266,7 @@ docker compose run --rm etl python etl/etl_sicooperative.py
 ## 📌 Observações Importantes
 
 - Estamos simulando um sistema real, onde a aplicação consome dados armazenados em SQL Server
-- O Docker representa um cenário de ambiente separado (como Produção x Desenvolvimento)
+- O Docker garante consistência e reprodutibilidade do ambiente, facilitando a execução em qualquer máquina
 - A coluna data de criação do cartão não pôde ser implementada porque não existe no modelo fornecido
 
 ### ⚠️ Tempo de Build do Docker
