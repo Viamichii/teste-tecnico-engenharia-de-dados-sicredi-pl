@@ -1,29 +1,3 @@
--- init.sql
--- Criar banco de dados
-IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = 'sicredi')
-    CREATE DATABASE sicredi;
-GO
-
-USE sicredi;
-GO
-
--- Criar usuário SQL (login)
-IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = 'sicredi_user')
-BEGIN
-    CREATE LOGIN sicredi_user WITH PASSWORD = 'SenhaForte123!';
-END
-GO
-
--- Criar usuário no banco de dados
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'sicredi_user')
-BEGIN
-    CREATE USER sicredi_user FOR LOGIN sicredi_user;
-END
-GO
-
--- Dar permissões
-ALTER ROLE db_owner ADD MEMBER sicredi_user;
-GO
 
 -- Criar tabelas
 CREATE TABLE associado (

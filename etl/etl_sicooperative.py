@@ -19,8 +19,109 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-import configs                  # noqa: E402
-from sql import data_generator  # noqa: E402
+import configs                  as configs
+from sql import data_generator
+
+# -----------------------------------------------------------
+# Etapa 0 - Garantir que o banco, usuário e tabelas existam
+# -----------------------------------------------------------
+
+import pyodbc
+
+def inicializar_banco():
+    """Cria o banco, usuário e tabelas caso ainda não existam."""
+    
+    # Conecta com o usuário sa
+    conn_str = (
+        f"DRIVER={{{configs.ODBC_DRIVER}}};"
+        f"SERVER={configs.DB_HOST},{configs.DB_PORT};"
+        "UID=sa;"
+        f"PWD={os.getenv('SA_PASSWORD', 'S3nh@F0rte!!!')};"
+        "Encrypt=no;"
+        "TrustServerCertificate=yes;"
+    )
+
+    conn = pyodbc.connect(conn_str, autocommit=True)
+    cur = conn.cursor()
+
+    # Criar banco se não existir
+    cur.execute(f"""
+        IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '{configs.DB_NAME}')
+        BEGIN
+            CREATE DATABASE {configs.DB_NAME};
+        END
+    """)
+
+    # Mudar contexto para o banco novo
+    cur.execute(f"USE {configs.DB_NAME};")
+
+    # Criar usuário se não existir
+    cur.execute(f"""
+        IF NOT EXISTS (SELECT * FROM sys.sql_logins WHERE name = '{configs.DB_USER}')
+        BEGIN
+            CREATE LOGIN {configs.DB_USER} WITH PASSWORD = '{configs.DB_PASSWORD}';
+        END
+    """)
+
+    cur.execute(f"""
+        IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '{configs.DB_USER}')
+        BEGIN
+            CREATE USER {configs.DB_USER} FOR LOGIN {configs.DB_USER};
+            EXEC sp_addrolemember 'db_owner', '{configs.DB_USER}';
+        END
+    """)
+
+    # Criar tabela associado
+    cur.execute("""
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='associado')
+        CREATE TABLE associado (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            nome NVARCHAR(100),
+            sobrenome NVARCHAR(100),
+            idade INT,
+            email NVARCHAR(200)
+        );
+    """)
+
+    # Criar tabela conta
+    cur.execute("""
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='conta')
+        CREATE TABLE conta (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            tipo NVARCHAR(20),
+            data_criacao DATETIME,
+            id_associado INT REFERENCES associado(id)
+        );
+    """)
+
+    # Criar tabela cartao
+    cur.execute("""
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='cartao')
+        CREATE TABLE cartao (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            num_cartao BIGINT,
+            nom_impresso NVARCHAR(200),
+            id_conta INT REFERENCES conta(id),
+            id_associado INT REFERENCES associado(id)
+        );
+    """)
+    
+    # Criar tabela movimento
+    cur.execute("""
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='movimento')
+        CREATE TABLE movimento (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            vlr_transacao DECIMAL(10,2),
+            des_transacao NVARCHAR(200),
+            data_movimento DATETIME,
+            id_cartao INT REFERENCES cartao(id)
+        );
+    """)
+
+    cur.close()
+    conn.close()
+    print("✔ Banco, usuário e tabelas verificados/criados com sucesso.")
+
 
 
 # -----------------------------------------------------
@@ -158,6 +259,7 @@ def etapa_silver(spark: SparkSession) -> None:
 
 def main() -> None:
     """Fluxo principal da pipeline."""
+    inicializar_banco()
     etapa_dados_ficticios()
 
     spark = criar_spark()

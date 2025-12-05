@@ -4,6 +4,39 @@ Pipeline ETL completa usando SQL Server, PySpark, Python e Docker
 
 Este projeto implementa uma pipeline completa de ingestão e transformação de dados, simulando um fluxo real de engenharia de dados utilizado em ambientes corporativos.
 
+## 📝 Observações (como solicitado no desafio)
+
+### Por que optei por este design?
+
+Escolhi estruturar o projeto com camadas Bronze → Silver, aplicando conceitos de pipelines modernas (Databricks/Lakehouse).
+Assim, o fluxo fica organizado, escalável, testável e semelhante a ambientes reais.
+
+### O que faria se tivesse mais tempo?
+
+- Solucionario o problema no docker e comecaria o projeto por ele
+- Criaria testes unitários para validação de cada etapa
+- Construiria um BI consumindo o CSV Silver
+- Automatizaria a criação do usuário SQL (sicredi_user) diretamente no Docker
+
+### Dificuldades encontradas
+
+**SQL Server + Docker:**
+Usei Microsoft SQL Server, que roda nativamente em Windows, mas o container oficial utiliza Linux.
+Isso exigiu atenção extra na integração, especialmente nos drivers JDBC/ODBC.
+
+**Criação do usuário `sicredi_user`:**
+A criação automática do usuário no primeiro login não funcionou como esperado dentro do Docker.
+Recomendo que o avaliador crie o usuário manualmente antes de testar, garantindo melhor performance na ETL:
+
+```sql
+CREATE LOGIN sicredi_user WITH PASSWORD = 'SenhaForte123!';
+CREATE USER sicredi_user FOR LOGIN sicredi_user;
+ALTER ROLE db_owner ADD MEMBER sicredi_user;
+```
+
+**Tempo de build:**
+O tempo de build do Docker é maior que o normal, pois Spark precisa ser instalado dentro da imagem.
+
 ## O objetivo é demonstrar:
 
 - Criação e organização de um ambiente de dados
@@ -84,34 +117,123 @@ Operações aplicadas:
 
 Geração de CSV único: `data/silver/sicredi_movimentos.csv`
 
-## 🚀 Execução Completa Automatizada (Pipeline Única)
+## 🚀 Como Executar
 
-O arquivo `etl_sicooperative.py` orquestra:
-1. Criação da SparkSession
-2. Execução do data_generator
-3. Geração da Bronze
-4. Geração da Silver
-5. Fechamento da sessão Spark
+### Opção 1: Localmente com Python venv
 
-Esse script é usado pelo Docker como ponto de entrada para rodar tudo automaticamente.
+#### 1. Criar e ativar o ambiente virtual:
 
-## 🐳 Execução com Docker (Bônus do Desafio)
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-O ambiente foi containerizado com `docker-compose.yml`, que sobe:
-- Um container SQL Server
-- Um container Python que executa a pipeline completa
+**Linux/macOS:**
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
-### Para rodar:
+#### 2. Instalar dependências:
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 3. Verificar configurações:
+
+Ajuste as variáveis em `configs.py` ou configure via variáveis de ambiente:
+- `DB_HOST` (padrão: localhost)
+- `DB_PORT` (padrão: 1433)
+- `DB_USER` (padrão: sicredi_user)
+- `DB_PASSWORD`
+
+#### 4. Popular o banco de dados (opcional):
+
+Se o SQL Server estiver rodando localmente:
+```bash
+python sql/data_generator.py
+```
+
+#### 5. Executar a pipeline ETL completa:
+
+```bash
+python etl/etl_sicooperative.py
+```
+
+Isso irá:
+1. Conectar ao SQL Server
+2. Gerar dados fictícios (se necessário)
+3. Criar a camada Bronze (Parquet)
+4. Criar a camada Silver (CSV)
+5. Salvar em `data/bronze/` e `data/silver/`
+
+---
+
+### Opção 2: Com Docker Compose (Recomendado)
+
+O Docker automatiza todo o ambiente, subindo SQL Server + ETL em containers.
+
+#### 1. Construir e executar:
 
 ```bash
 docker compose up --build
 ```
 
 Durante a execução:
-1. O SQL Server é iniciado
-2. Gera dados fictícios
-3. Produz Bronze
-4. Produz Silver
+1. ✅ SQL Server é inicializado
+2. ✅ Tabelas são criadas automaticamente
+3. ✅ Dados fictícios são gerados
+4. ✅ Pipeline Bronze é produzida
+5. ✅ Pipeline Silver é produzida
+6. ✅ Logs são exibidos no console
+
+#### 2. Executar componentes isolados:
+
+Subir apenas o SQL Server (manter em background):
+```bash
+docker compose up -d sqlserver
+```
+
+Depois executar a ETL:
+```bash
+docker compose run --rm etl python etl/etl_sicooperative.py
+```
+
+#### 3. Ver logs:
+
+```bash
+# Logs da ETL
+docker compose logs -f etl
+
+# Logs do SQL Server
+docker compose logs -f sqlserver
+```
+
+#### 4. Parar os containers:
+
+```bash
+docker compose down
+```
+
+---
+
+### Opção 3: PowerShell Automatizado (Windows)
+
+Se desejar automação completa via script PowerShell:
+
+```powershell
+# Permitir execução de scripts (uma vez por sessão)
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# Executar o fluxo completo
+.\run_all.ps1
+```
+
+**Nota:** O primeiro build pode demorar vários minutos (PySpark é grande).
+
+---
 
 ## 🛠 Tecnologias Utilizadas
 
@@ -125,91 +247,19 @@ Durante a execução:
 | Parquet | Armazenamento Bronze |
 | CSV | Entrega Silver |
 
+## 🔍 Troubleshooting
+
+### A ETL falha por conexão com SQL Server
+- **venv:** Verifique se o SQL Server está rodando localmente
+- **Docker:** Aguarde alguns segundos para o SQL Server inicializar (verifique com `docker compose logs sqlserver`)
+- Confirme credenciais em `configs.py` ou variáveis de ambiente
+
+### Erro ODBC / pyodbc
+- erro entre conexao do sqlserver e ubunto no docker, erro se refere ao conector e driver que o ubunto nao tem.
+
 ## 📌 Observações Importantes
 
-- Estamos simulando um sistema real, onde a aplicação consome dados armazenados em SQL Server.
-- O Docker representa um cenário de ambiente separado (como Produção x Desenvolvimento).
-- A coluna data de criação do cartão não pôde ser implementada porque não existe no modelo fornecido.
+- Estamos simulando um sistema real, onde a aplicação consome dados armazenados em SQL Server
+- O Docker representa um cenário de ambiente separado (como Produção x Desenvolvimento)
+- A coluna data de criação do cartão não pôde ser implementada porque não existe no modelo fornecido
 
-## 🧪 Como Executar Localmente
-
-### 1. Criar ambiente virtual:
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 2. Rodar somente a ETL:
-```bash
-python etl/etl_sicooperative.py
-```
-
-### 3. Rodar tudo com Docker:
-```bash
-docker compose up --build
-```
-
-## 🏁 Como executar o ETL — passo a passo
-
-1) Rodar localmente (venv)
-- Criar e ativar virtualenv:
-  - Windows:
-    - python -m venv venv
-    - venv\Scripts\activate
-  - Linux/macOS:
-    - python -m venv venv
-    - source venv/bin/activate
-- Instalar dependências:
-  - pip install -r requirements.txt
-- Verificar configs:
-  - Ajuste variáveis em configs.py ou via env vars (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD).
-- Rodar gerador de dados (opcional, popula o banco):
-  - python sql/data_generator.py
-- Rodar pipeline completa:
-  - python etl/etl_sicooperative.py
-
-2) Rodar com Docker (recomendado para reproducibilidade)
-- Subir todo o ambiente (SQL Server + ETL):
-  - docker compose up --build
-- Executar apenas o ETL (após subir o SQL Server):
-  - docker compose up -d sqlserver
-  - docker compose run --rm etl python etl/etl_sicooperative.py
-- Ver logs:
-  - docker compose logs -f etl
-  - docker compose logs -f sqlserver
-
-3) Verificações e troubleshooting rápido
-- A ETL falha por conexão:
-  - Verifique se o SQL Server está healthy (checar logs e healthcheck do compose).
-  - Confirme credenciais e host em configs.py / variáveis de ambiente.
-- Erro ODBC / pyodbc:
-  - Dentro do container, teste conexão via um pequeno script pyodbc ou rodando sql/data_generator.py isolado.
-  - Se faltar driver ODBC, considere instalar `unixodbc`/driver apropriado ou ajustar Dockerfile, mas prefira a imagem sugerida (bitnami/spark) e unixodbc.
-- Se o build Docker demora:
-  - Use a imagem base com PySpark pré-instalado (já configurada no Dockerfile do projeto).
-  - Evite reinstalar pyspark no pip dentro do container.
-- Teste incremental:
-  - Primeiro execute sql/data_generator.py para verificar inserção no DB.
-  - Depois execute apenas a parte de leitura (ex.: rodar um script que lê uma tabela via pandas/pyodbc).
-
-4) Dicas finais
-- Para depurar rapidamente, rode os scripts localmente fora do Docker (isso isola problemas de driver/build).
-- Ajuste spark.conf ("spark.sql.shuffle.partitions") no etl_sicooperative.py para volumes pequenos (já definido para 1 no projeto).
-
-## ✔️ Resultado Final
-
-Ao final da execução você terá:
-
-### 📁 Bronze
-Parquets organizados por tabela.
-
-### 📁 Silver
-CSV analítico final contendo os movimentos flatenados.
-
-### 🎯 Pipeline concluída de ponta a ponta
-Simulando um ambiente real com:
-- Dados transacionais
-- Processamento estruturado
-- Workflow completo
-- Automação via Docker

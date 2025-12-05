@@ -1,36 +1,17 @@
+version: '3.8'
+
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sicredi-sql
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
-      - MSSQL_PID=Express
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "S3nh@F0rte!!!"
+      MSSQL_PID: "Express"
     ports:
-      - "1433:1433"
+      - "11433:1433"
     networks:
       - sicredi-net
-    healthcheck:
-      test: ["CMD", "curl", "http://localhost:1433"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  init-db:
-    build: .
-    container_name: sicredi-init
-    depends_on:
-      - sqlserver
-    environment:
-      - DB_HOST=sqlserver
-      - DB_PORT=1433
-      - SA_PASSWORD=YourStrong@Passw0rd
-      - ODBC_DRIVER=ODBC Driver 18 for SQL Server
-    networks:
-      - sicredi-net
-    command: python sql/init_db.py
-    profiles:
-      - init
 
   etl:
     build: .
@@ -38,16 +19,20 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - DB_HOST=sqlserver
-      - DB_PORT=1433
-      - DB_NAME=sicredi
-      - DB_USER=sicredi_user
-      - DB_PASSWORD=SenhaForte123!
-      - ODBC_DRIVER=ODBC Driver 18 for SQL Server
+      DB_HOST: sqlserver
+      DB_PORT: 1433
+      DB_NAME: sicredi
+      DB_USER: sicredi_user
+      DB_PASSWORD: SenhaForte123!
+      SA_PASSWORD: "S3nh@F0rte!!!"
+      ODBC_DRIVER: "ODBC Driver 18 for SQL Server"
     volumes:
       - ./data:/app/data
+      - .:/app
     networks:
       - sicredi-net
+    command: >
+      sh -c "sleep 25 && python etl/etl_sicooperative.py"
 
 networks:
   sicredi-net:
