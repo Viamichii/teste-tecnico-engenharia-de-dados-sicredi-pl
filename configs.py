@@ -4,10 +4,9 @@
 import os
 
 # --- Banco de dados SQL Server ---
-DB_HOST= "host.docker.internal"
-# Fora do Docker: localhost
-#DB_HOST = os.getenv("DB_HOST", "localhost")
 
+# Fora do Docker: DB_HOST = "localhost"
+# Dentro do container: DB_HOST = "host.docker.internal" (ou nome do serviço do compose)
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = int(os.getenv("DB_PORT", "1433"))
 
@@ -15,7 +14,6 @@ DB_NAME = os.getenv("DB_NAME", "sicredi")
 
 DB_USER = os.getenv("DB_USER", "sicredi_user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "SenhaForte123!")
-
 
 # --- Conexão JDBC (Spark) ---
 JDBC_URL = (
@@ -28,13 +26,13 @@ JDBC_URL = (
 JDBC_DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 JDBC_JAR_PACKAGE = "com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11"
 
-
 # --- Conexão ODBC (pyodbc) ---
 ODBC_DRIVER = "ODBC Driver 17 for SQL Server"
 
 def build_odbc_conn_str() -> str:
     """
     Monta a connection string ODBC para o pyodbc (usada no data_generator).
+    Ex.: SERVER=localhost,1433 ou SERVER=host.docker.internal,1433
     """
     return (
         f"DRIVER={{{ODBC_DRIVER}}};"
@@ -43,7 +41,6 @@ def build_odbc_conn_str() -> str:
         f"UID={DB_USER};"
         f"PWD={DB_PASSWORD};"
     )
-
 
 # --- Caminhos de dados ---
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))

@@ -1,29 +1,32 @@
-# Dockerfile - container da aplicação (Spark + Python + Jupyter)
 FROM python:3.11-slim
 
-# Instalar Java (necessário para Spark) e dependências do pyodbc
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        default-jdk-headless \
-        unixodbc-dev \
-        build-essential \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Descobrir onde o Java foi instalado automaticamente
-RUN echo "JAVA_HOME guess:" && readlink -f /usr/bin/java || true
-
-# Diretório de trabalho dentro do container
+# 1) Pastas básicas
 WORKDIR /app
 
-# Copiar requirements e instalar dependências Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 2) Instalar dependências do sistema (Java + ODBC + build)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openjdk-17-jdk-headless \
+        unixodbc-dev \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar TODO o projeto para dentro da imagem
+# 3) Copiar arquivos do projeto
 COPY . .
 
-# Expor a porta do Jupyter
-EXPOSE 8888
+# 4) Instalar dependências Python
+RUN pip install --no-cache-dir \
+    pyspark \
+    pyodbc \
+    Faker \
+    pandas
 
-# Comando padrão: subir Jupyter Lab
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+# 5) Variáveis padrão (podem ser sobrescritas no docker-compose)
+ENV DB_HOST=sqlserver \
+    DB_PORT=1433 \
+    DB_NAME=sicredi \
+    DB_USER=sicredi_user \
+    DB_PASSWORD=SenhaForte123!
+
+# 6) Comando padrão: rodar ETL completa
+CMD ["python", "-m", "etl.etl_sicooperative"]
