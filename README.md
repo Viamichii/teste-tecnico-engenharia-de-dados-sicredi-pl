@@ -208,7 +208,7 @@ A ETL irá:
 
 ---
 
-### Opção 2: Com Docker Compose (Recomendado)
+### Opção 2: Com Docker Compose
 
 O Docker automatiza todo o ambiente, subindo SQL Server + ETL em containers.
 
