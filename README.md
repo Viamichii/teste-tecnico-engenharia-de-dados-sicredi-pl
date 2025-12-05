@@ -25,6 +25,9 @@ No início, criei manualmente o banco, usuário e tabelas. Depois, com a automa�
 
 ### Dificuldades encontradas
 
+**Tempo de build do Spark:**
+O tempo de build do Docker é significativamente maior devido ao download e instalação de todas as dependências do Spark. Esse processo pode levar vários minutos na primeira execução.
+
 **SQL Server + Docker:**
 Usei Microsoft SQL Server, que roda nativamente em Windows, mas o container oficial utiliza Linux.
 Isso exigiu atenção extra na integração, especialmente nos drivers JDBC/ODBC.
