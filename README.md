@@ -63,6 +63,10 @@ teste-tecnico-engenharia-de-dados-sicredi-pl/
 ├── etl/
 │   └── etl_sicooperative.py     # Pipeline completa (Bronze + Silver)
 │
+├── notebooks/
+│   ├── 01_bronze_ingestao.ipynb # Ingestão de dados do SQL Server para Bronze (Parquet)
+│   └── 02_silver_transform.ipynb # Transformação dos dados Bronze para Silver (CSV)
+│
 ├── data/
 │   ├── bronze/                  # Armazena Parquet
 │   └── silver/                  # Armazena CSV final
@@ -234,24 +238,6 @@ Depois executar a ETL:
 docker compose run --rm etl python etl/etl_sicooperative.py
 ```
 
-#### 3. Ver logs:
-
-```bash
-# Logs da ETL
-docker compose logs -f etl
-
-# Logs do SQL Server
-docker compose logs -f sqlserver
-```
-
-#### 4. Parar os containers:
-
-```bash
-docker compose down
-```
-
-
----
 
 ## 🛠 Tecnologias Utilizadas
 
