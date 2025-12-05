@@ -1,4 +1,6 @@
 pyspark==3.5.1
-pyodbc
-faker
-jupyter
+pyodbc==4.0.40
+Faker==18.11.1
+# pandas só se você realmente precisar dentro do container
+# pandas==2.2.2
+# jupyter não é necessário no container de ETL; deixe para dev local

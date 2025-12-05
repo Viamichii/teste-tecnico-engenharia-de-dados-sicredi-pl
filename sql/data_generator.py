@@ -67,7 +67,6 @@ def main():
     conn.commit()
     cur.close()
     conn.close()
-    print("Dados gerados com sucesso!")
 
 
 if __name__ == "__main__":

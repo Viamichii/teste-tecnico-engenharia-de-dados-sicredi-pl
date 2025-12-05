@@ -1,32 +1,41 @@
+# syntax=docker/dockerfile:1
 FROM python:3.11-slim
 
-# 1) Pastas básicas
 WORKDIR /app
 
-# 2) Instalar dependências do sistema (Java + ODBC + build)
+# Dependências do sistema
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless \
+        default-jre-headless \
+        curl \
+        gnupg2 \
+        unixodbc \
         unixodbc-dev \
-        build-essential \
-    && rm -rf /var/lib/apt/lists/*
+        build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# 3) Copiar arquivos do projeto
+# Adicionar repositório Microsoft e instalar msodbcsql18
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-prod.gpg && \
+    curl https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copia apenas requirements para aproveitar cache do Docker
+COPY requirements.txt /tmp/requirements.txt
+
+# Instala dependências Python com cache de pip (BuildKit)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir --prefer-binary -r /tmp/requirements.txt
+
+# Copia o resto do projeto
 COPY . .
 
-# 4) Instalar dependências Python
-RUN pip install --no-cache-dir \
-    pyspark \
-    pyodbc \
-    Faker \
-    pandas
-
-# 5) Variáveis padrão (podem ser sobrescritas no docker-compose)
 ENV DB_HOST=sqlserver \
     DB_PORT=1433 \
     DB_NAME=sicredi \
     DB_USER=sicredi_user \
-    DB_PASSWORD=SenhaForte123!
+    DB_PASSWORD=SenhaForte123! \
+    PYTHONUNBUFFERED=1
 
-# 6) Comando padrão: rodar ETL completa
-CMD ["python", "-m", "etl.etl_sicooperative"]
+CMD ["python", "etl/etl_sicooperative.py"]
