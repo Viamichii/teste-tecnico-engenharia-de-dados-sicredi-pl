@@ -250,21 +250,6 @@ docker compose logs -f sqlserver
 docker compose down
 ```
 
----
-
-### Opção 3: PowerShell Automatizado (Windows)
-
-Se desejar automação completa via script PowerShell:
-
-```powershell
-# Permitir execução de scripts (uma vez por sessão)
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-
-# Executar o fluxo completo
-.\run_all.ps1
-```
-
-**Nota:** O primeiro build pode demorar vários minutos (PySpark é grande).
 
 ---
 
