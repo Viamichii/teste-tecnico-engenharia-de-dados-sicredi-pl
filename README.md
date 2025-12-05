@@ -145,6 +145,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **📌 Nota:** As etapas 3, 4 e 5 referem-se à configuração do banco de dados (criar banco, criar tabelas e verificar configurações) e já estão **automatizadas no script `etl_sicooperative.py`**. Elas são apresentadas no passo a passo por garantia de execução caso você prefira configurar manualmente ou precise de troubleshooting.
+
 #### 3. Configurar banco de dados SQL Server:
 
 Execute os comandos no SQL Server Management Studio ou sqlcmd para criar o banco e o usuário:
@@ -293,4 +295,10 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 - Estamos simulando um sistema real, onde a aplicação consome dados armazenados em SQL Server
 - O Docker representa um cenário de ambiente separado (como Produção x Desenvolvimento)
 - A coluna data de criação do cartão não pôde ser implementada porque não existe no modelo fornecido
+
+### ⚠️ Tempo de Build do Docker
+
+![PySpark Download](https://i.imgur.com/your-image-link.png)
+
+> **Nota:** Sempre que repetia o build no Docker, o processo demorava muito a ponto de parecer que estava travado. Ao rodar localmente novamente depois de clonar o projeto, notei que o Spark demorava bastante para baixar e configurar. Esse é provavelmente o motivo da demora no build do Docker. Tenha paciência durante o primeiro build - pode levar vários minutos.
 
