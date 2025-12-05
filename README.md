@@ -11,9 +11,14 @@ Este projeto implementa uma pipeline completa de ingestão e transformação de 
 Escolhi estruturar o projeto com camadas Bronze → Silver, aplicando conceitos de pipelines modernas (Databricks/Lakehouse).
 Assim, o fluxo fica organizado, escalável, testável e semelhante a ambientes reais.
 
+**Processo de produção:**
+O fluxo segue a sequência: **Tabelas → Geração de dados → Bronze (Parquet) → Silver (CSV)**
+
+No início, criei manualmente o banco, usuário e tabelas. Depois, com a automação, o Docker cuida de todo esse setup automaticamente, garantindo reproducibilidade e facilitando o teste em diferentes ambientes.
+
 ### O que faria se tivesse mais tempo?
 
-- Solucionario o problema no docker e comecaria o projeto por ele
+- Solucionaria o problema no docker e comecaria o projeto por ele
 - Criaria testes unitários para validação de cada etapa
 - Construiria um BI consumindo o CSV Silver
 - Automatizaria a criação do usuário SQL (sicredi_user) diretamente no Docker
@@ -43,7 +48,6 @@ O tempo de build do Docker é maior que o normal, pois Spark precisa ser instala
 - Geração automática de dados transacionais
 - Leitura a partir de um banco SQL Server
 - Processamento Bronze → Silver com PySpark
-- Transformações, normalização e flatten
 - Salvamento em Parquet (Bronze) e CSV (Silver)
 - Execução automatizada em Docker (bonus)
 
@@ -141,7 +145,41 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 3. Verificar configurações:
+#### 3. Configurar banco de dados SQL Server:
+
+Execute os comandos no SQL Server Management Studio ou sqlcmd para criar o banco e o usuário:
+
+```sql
+-- Criar banco de dados
+CREATE DATABASE sicredi;
+GO
+
+USE sicredi;
+GO
+
+-- Criar login e usuário
+CREATE LOGIN sicredi_user WITH PASSWORD = 'SenhaForte123!';
+GO
+
+CREATE USER sicredi_user FOR LOGIN sicredi_user;
+GO
+
+ALTER ROLE db_owner ADD MEMBER sicredi_user;
+GO
+```
+
+#### 4. Criar as tabelas:
+
+Execute o script SQL para criar as tabelas:
+
+```bash
+# Windows (usando sqlcmd)
+sqlcmd -S localhost -U sicredi_user -P SenhaForte123! -d sicredi -i sql/schema.sql
+```
+
+Ou execute o conteúdo de `sql/schema.sql` no SQL Server Management Studio.
+
+#### 5. Verificar configurações:
 
 Ajuste as variáveis em `configs.py` ou configure via variáveis de ambiente:
 - `DB_HOST` (padrão: localhost)
@@ -149,22 +187,15 @@ Ajuste as variáveis em `configs.py` ou configure via variáveis de ambiente:
 - `DB_USER` (padrão: sicredi_user)
 - `DB_PASSWORD`
 
-#### 4. Popular o banco de dados (opcional):
-
-Se o SQL Server estiver rodando localmente:
-```bash
-python sql/data_generator.py
-```
-
-#### 5. Executar a pipeline ETL completa:
+#### 6. Executar a pipeline ETL completa:
 
 ```bash
 python etl/etl_sicooperative.py
 ```
 
-Isso irá:
+A ETL irá:
 1. Conectar ao SQL Server
-2. Gerar dados fictícios (se necessário)
+2. Gerar dados fictícios automaticamente
 3. Criar a camada Bronze (Parquet)
 4. Criar a camada Silver (CSV)
 5. Salvar em `data/bronze/` e `data/silver/`
